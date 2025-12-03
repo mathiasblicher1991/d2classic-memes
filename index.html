@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>XP Table — Demo</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; margin: 20px; line-height:1.4; }
+    .card { border:1px solid #ddd; border-radius:8px; padding:16px; max-width:720px; }
+    label { display:block; margin-bottom:8px; font-weight:600; }
+    select { padding:6px 8px; font-size:1rem; }
+    table { width:100%; border-collapse:collapse; margin-top:12px;}
+    th, td { border:1px solid #eee; padding:8px; text-align:left; }
+    th { background:#f7f7f7; }
+    .small { font-size:0.9rem; color:#555; }
+  </style>
+</head>
+<body>
+  <h1>XP Table — Demo</h1>
+  <div class="card">
+    <label for="monster">Choose monster</label>
+    <select id="monster"></select>
+
+    <div id="info" class="small" aria-live="polite" style="margin-top:8px"></div>
+
+    <table id="xpTable" aria-label="Experience table">
+      <thead>
+        <tr><th>Level</th><th>XP to Next</th><th>Cumulative XP</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    // Example dataset: monsters with xp multipliers or flat xp
+    const MONSTERS = [
+      { id: 'goblin', name: 'Goblin', baseXP: 25, notes: 'Weak melee' },
+      { id: 'orc',    name: 'Orc',    baseXP: 60, notes: 'Tougher' },
+      { id: 'slime',  name: 'Slime',  baseXP: 12, notes: 'Many spawn' },
+      { id: 'dragon', name: 'Dragon', baseXP: 1200, notes: 'Boss-level' }
+    ];
+
+    // Example XP progression formula: xp for defeating a monster at player level L
+    // This is illustrative; replace with your game's real formula.
+    function xpAtLevelForMonster(playerLevel, monster) {
+      // simple formula: monster.baseXP * (1 + playerLevel * 0.05)
+      return Math.round(monster.baseXP * (1 + playerLevel * 0.05));
+    }
+
+    // UI elements
+    const sel = document.getElementById('monster');
+    const tbody = document.querySelector('#xpTable tbody');
+    const info = document.getElementById('info');
+
+    // populate dropdown
+    MONSTERS.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.id;
+      opt.textContent = m.name;
+      sel.appendChild(opt);
+    });
+
+    function buildTableForMonster(monsterId) {
+      const monster = MONSTERS.find(m => m.id === monsterId);
+      if (!monster) return;
+
+      info.textContent = `${monster.name} — ${monster.notes} — base XP: ${monster.baseXP}`;
+
+      // Build 20-level table (example)
+      tbody.innerHTML = '';
+      let cumulative = 0;
+      for (let lvl = 1; lvl <= 20; lvl++) {
+        const xp = xpAtLevelForMonster(lvl, monster);
+        cumulative += xp;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>Lv ${lvl}</td><td>${xp.toLocaleString()}</td><td>${cumulative.toLocaleString()}</td>`;
+        tbody.appendChild(tr);
+      }
+    }
+
+    // initialize
+    sel.addEventListener('change', (e) => buildTableForMonster(e.target.value));
+    buildTableForMonster(MONSTERS[0].id);
+  </script>
+</body>
+</html>
