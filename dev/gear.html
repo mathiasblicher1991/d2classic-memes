@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Gear Planner — Demo</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; padding:16px; }
+  .layout { display:flex; gap:20px; align-items:flex-start; }
+  .gear-wrap { position:relative; width:360px; height:540px; border:1px solid #ddd; background:#111; }
+  /* Replace the background image with your D2 screenshot (base gear picture) */
+  .gear-base {
+    position:absolute; inset:0; width:100%; height:100%;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="360" height="540"><rect width="100%" height="100%" fill="%23111"/><text x="50%" y="50%" fill="%23eee" font-size="18" font-family="sans-serif" text-anchor="middle">Base gear image (replace)</text></svg>') center/cover no-repeat;
+  }
+
+  /* Slot container: absolute box where an item image will sit */
+  .slot {
+    position:absolute;
+    pointer-events:none; /* let selects capture clicks if overlaid; change if you want clicking the image to do things */
+  }
+  .slot img {
+    display:block;
+    max-width:100%;
+    height:auto;
+    pointer-events:auto;
+    user-select:none;
+  }
+
+  /* Controls column */
+  .controls { min-width:260px; }
+  .slot-row { margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+  label { width:80px; display:inline-block; font-weight:600; }
+  select { flex:1; padding:6px; border-radius:6px; }
+  button { margin-top:10px; padding:6px 10px; border-radius:6px; cursor:pointer; }
+
+  .hint { margin-top:12px; color:#666; font-size:0.9rem; }
+</style>
+</head>
+<body>
+  <h1>Gear Planner — Demo</h1>
+
+  <div class="layout">
+    <div class="gear-wrap" id="gearWrap">
+      <div class="gear-base"></div>
+
+      <!-- Example slots placed by CSS coordinates; update positions/sizes to match your screenshot -->
+      <div class="slot" id="slot-head" data-slot="head" style="left:126px; top:24px; width:108px; height:108px;">
+        <img src="" alt="head item" id="img-head" />
+      </div>
+
+      <div class="slot" id="slot-body" data-slot="body" style="left:96px; top:146px; width:168px; height:160px;">
+        <img src="" alt="body item" id="img-body" />
+      </div>
+
+      <div class="slot" id="slot-weapon" data-slot="weapon" style="left:20px; top:210px; width:90px; height:200px;">
+        <img src="" alt="weapon item" id="img-weapon" />
+      </div>
+
+      <!-- Add more .slot elements here positioned to match your base image -->
+    </div>
+
+    <div class="controls">
+      <div id="controlsInner"></div>
+
+      <button id="resetBtn">Reset</button>
+
+      <div class="hint">
+        Tip: replace the base image in CSS (.gear-base background) with your D2 screenshot. Put item PNGs with transparent backgrounds and point `items[].img` to them.
+      </div>
+    </div>
+  </div>
+
+<script>
+/*
+  DATA: define slots and items. Replace item.img URLs with your transparent PNGs.
+  Each item should have a slot property matching a slot id (head/body/weapon/...).
+*/
+const SLOTS = ['head','body','weapon']; // extend to your 10 slots
+const ITEMS = [
+  { id:'none', name:'(empty)', slot:'head', img:'' },
+  { id:'iron_helm', name:'Iron Helm', slot:'head', img:'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="108" height="108"><rect width="100%" height="100%" fill="%23cfa"/><text x="50%" y="55%" font-size="14" text-anchor="middle">Iron Helm</text></svg>' },
+  { id:'leather_cap', name:'Leather Cap', slot:'head', img:'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="108" height="108"><rect width="100%" height="100%" fill="%23c9f"/><text x="50%" y="55%" font-size="14" text-anchor="middle">Leather Cap</text></svg>' },
+
+  { id:'bronze_chest', name:'Bronze Chest', slot:'body', img:'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="168" height="160"><rect width="100%" height="100%" fill="%23fdd"/><text x="50%" y="50%" font-size="14" text-anchor="middle">Bronze Chest</text></svg>' },
+  { id:'silk_robe', name:'Silk Robe', slot:'body', img:'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="168" height="160"><rect width="100%" height="100%" fill="%23dfd"/><text x="50%" y="50%" font-size="14" text-anchor="middle">Silk Robe</text></svg>' },
+
+  { id:'short_sword', name:'Short Sword', slot:'weapon', img:'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="90" height="200"><rect width="100%" height="100%" fill="%23ffd"/><text x="50%" y="50%" font-size="14" text-anchor="middle">Short Sword</text></svg>' },
+  { id:'staff_sparks', name:'Staff of Sparks', slot:'weapon', img:'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="90" height="200"><rect width="100%" height="100%" fill="%23ddf"/><text x="50%" y="50%" font-size="14" text-anchor="middle">Staff</text></svg>' }
+];
+
+// storage key
+const KEY = 'd2c_gear_v1';
+
+// build controls (selects)
+const controlsInner = document.getElementById('controlsInner');
+
+SLOTS.forEach(slot => {
+  const row = document.createElement('div');
+  row.className = 'slot-row';
+  const label = document.createElement('label');
+  label.htmlFor = `sel-${slot}`;
+  label.textContent = slot.toUpperCase();
+  const select = document.createElement('select');
+  select.id = `sel-${slot}`;
+  // populate options for items that match this slot
+  const opts = ITEMS.filter(i => i.slot === slot || i.id === 'none');
+  opts.forEach(o => {
+    const opt = document.createElement('option');
+    opt.value = o.id;
+    opt.textContent = o.name;
+    select.appendChild(opt);
+  });
+  row.appendChild(label);
+  row.appendChild(select);
+  controlsInner.appendChild(row);
+});
+
+// read/save equipped state
+function loadEquipped() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch(e) { return {}; }
+}
+function saveEquipped(state) {
+  localStorage.setItem(KEY, JSON.stringify(state));
+}
+
+// set an item on the overlay image for a slot
+function setSlotImage(slot, itemId) {
+  const imgEl = document.getElementById(`img-${slot}`);
+  const item = ITEMS.find(i => i.id === itemId);
+  if (!imgEl) return;
+  if (!item || !item.img) {
+    imgEl.src = '';
+    imgEl.style.display = 'none';
+  } else {
+    imgEl.src = item.img;
+    imgEl.style.display = 'block';
+    // ensure the overlay fits the slot box (you can also size item PNGs exactly)
+    imgEl.style.width = '100%';
+    imgEl.style.height = '100%';
+    imgEl.style.objectFit = 'contain';
+  }
+}
+
+// init from storage or defaults
+let equipped = loadEquipped();
+SLOTS.forEach(slot => {
+  const sel = document.getElementById(`sel-${slot}`);
+  const current = equipped[slot] || 'none';
+  sel.value = current;
+  setSlotImage(slot, current);
+
+  sel.addEventListener('change', e => {
+    const id = e.target.value;
+    equipped[slot] = id;
+    setSlotImage(slot, id);
+    saveEquipped(equipped);
+  });
+});
+
+// reset button
+document.getElementById('resetBtn').addEventListener('click', () => {
+  equipped = {};
+  SLOTS.forEach(slot => {
+    const sel = document.getElementById(`sel-${slot}`);
+    sel.value = 'none';
+    setSlotImage(slot, 'none');
+  });
+  saveEquipped(equipped);
+});
+</script>
+</body>
+</html>

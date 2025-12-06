@@ -1,0 +1,61 @@
+<html>
+
+<head>
+    <title>hej</title>
+</head>
+
+<style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; margin: 20px; line-height:1.4; }
+    .card{background-color: white;
+    max-width: 720px;
+    padding: 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;}
+    label{display:block; margin-bottom: 8px; font-weight: 600;}
+    select{display:block; padding: 6px 8px; font-size:1rem;}
+    .small { font-size:0.9rem; color:#555; }
+</style>
+
+<body>
+
+<div class="card">
+    <label for="enemy">Choose</label>
+    <select id="enemy"></select>
+
+    <div id="info" class="small"></div>
+</div>
+Okay.
+
+<script>
+
+    const ENEMIES = [
+        {id: 'andariel_normal', name: 'Andariel (N)', XP: 1200},
+        {id: 'andariel_nightmare', name: 'Andariel (NM)', XP: 30000},
+        {id: 'andariel_hell', name: 'Andariel (H)', XP: 230000}
+    ];
+
+    const sel = document.getElementById('enemy');
+    const info = document.getElementById('info');
+
+    ENEMIES.forEach(x => {
+        const opt = document.createElement('option');
+        opt.value = x.id;
+        opt.textContent = x.name;
+        sel.appendChild(opt);
+    });
+
+    function writeText(enemyId){
+        const enemy = ENEMIES.find(x => x.id == enemyId);
+        info.textContent = `XP: ${enemy.XP}`;
+    }
+
+    writeText('andariel_nightmare');
+
+    sel.addEventListener('change', (e) => writeText(e.target.value));
+
+
+</script>
+
+</body>
+
+</html>
