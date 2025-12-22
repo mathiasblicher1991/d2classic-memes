@@ -1,0 +1,115 @@
+<html>
+
+<head>
+    <title>
+        D2 Classic Gear
+    </title>
+</head>
+
+<style>
+    .card{
+        max-width: 120px;
+        padding: 16px;
+        border: 1px solid #ddd;}
+    .stats{
+        display: grid;
+        grid-template-columns: auto auto;
+    }
+    .stats span{
+        text-align: right;
+    }
+</style>
+
+<body>
+
+<div>
+    <select id="char">
+        <option value="none"> -- SELECT CLASS -- </option>
+    </select>
+</div>
+
+<select id="s.head"></select>
+<br>
+<select id="s.body"></select>
+<br>
+<select id="s.gloves"></select>
+
+<div class="card stats">
+    <div>Strength: </div><span id="str"></span>
+    <div>Dexterity: </div><span id="dex"></span>
+    <div>Vitality: </div><span id="vit"></span>
+    <div>Energy: </div><span id="ene"></span>
+</div>
+<div class="card stats">
+    <div>Life: </div><span id="life"></span>
+    <div>Mana: </div><span id="mana"></span>
+</div>
+
+<div id="printer">
+</div>
+
+</body>
+
+<script type="module">
+
+    import { ITEMS } from "./data/items.js";
+    import { CLASSES } from "./data/classes.js";
+
+    const HERO = {
+        cur_class: "none"
+    };
+
+    const STATS = {
+        str: 0,
+        dex: 2,
+        vit: 0,
+        ene: 0,
+        life: 0,
+        mana: 0
+    };
+
+    document.body.style.background = "darkgray";
+    
+    //const a = document.getElementById('pretext');
+    //a.textContent = 'Nu går vi';
+
+    const charselect = document.getElementById('char');
+    
+    // Populate class menu
+    CLASSES.forEach(x => {
+        const opt = document.createElement('option');
+        opt.value = x.id;
+        opt.textContent = x.name;
+        charselect.appendChild(opt);
+    });
+
+    const stat_ids = ["str","dex","vit","ene","life","mana"];
+    function displayStats(){
+        stat_ids.forEach(x => {
+            const stat = document.getElementById(x);
+            stat.textContent = STATS[x];
+        });
+    }
+
+    function loadStats(){
+        const cls = CLASSES.find(x => x.id === HERO.cur_class);
+        stat_ids.slice(0, 4).forEach(x => {
+            STATS[x] = cls.stats[x];    
+        });
+        STATS.life = cls.fea.life; 
+        STATS.mana = cls.fea.mana;
+    }
+
+    function changeClass(classId){
+        //const a = document.getElementById('printer');
+        //a.textContent = "mega";
+        HERO.cur_class = classId;
+        loadStats();
+        displayStats();
+    }
+
+    charselect.addEventListener('change', (e) => changeClass(e.target.value));
+
+</script>
+
+</html>
