@@ -28,6 +28,9 @@
     </select>
 </div>
 
+<input type="text" id="level">
+
+<br>
 <select id="s.head"></select>
 <br>
 <select id="s.body"></select>
@@ -56,16 +59,23 @@
     import { CLASSES } from "./data/classes.js";
 
     const HERO = {
-        cur_class: "none"
+        cur_class: "none",
+        lvl: 1
     };
 
     const STATS = {
         str: 0,
-        dex: 2,
+        dex: 0,
         vit: 0,
         ene: 0,
         life: 0,
-        mana: 0
+        mana: 0,
+        life_base: 0,
+        mana_base: 0,
+        life_lvl: 0,
+        mana_lvl: 0,
+        life_vit: 0,
+        mana_ene: 0
     };
 
     document.body.style.background = "darkgray";
@@ -74,6 +84,7 @@
     //a.textContent = 'Nu går vi';
 
     const charselect = document.getElementById('char');
+    const lvlfield = document.getElementById('level');
     
     // Populate class menu
     CLASSES.forEach(x => {
@@ -96,8 +107,14 @@
         stat_ids.slice(0, 4).forEach(x => {
             STATS[x] = cls.stats[x];    
         });
-        STATS.life = cls.fea.life; 
-        STATS.mana = cls.fea.mana;
+        STATS.life = cls.fea.life;
+        STATs.mana = cls.fea.mana;
+        STATS.life_base = cls.fea.life; 
+        STATS.mana_base = cls.fea.mana;
+        STATS.life_lvl = cls.fea.life_lvl;
+        STATS.mana_lvl = cls.fea.mana_lvl;
+        STATS.life_vit = cls.fea.life_vit;
+        STATS.mana_ene = cls.fea.mana_ene;
     }
 
     function changeClass(classId){
@@ -108,7 +125,20 @@
         displayStats();
     }
 
+    function changeLevel(level){
+        HERO.lvl = level;
+
+
+        const a = document.getElementById('printer');
+        a.textContent = HERO.lvl;
+    }
+
+    function updateStats(){
+        //STATS.life = 
+    }
+
     charselect.addEventListener('change', (e) => changeClass(e.target.value));
+    lvlfield.addEventListener('change', (e) => changeLevel(e.target.value));
 
 </script>
 
