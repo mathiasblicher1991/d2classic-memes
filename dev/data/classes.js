@@ -13,8 +13,8 @@ export const CLASSES = [
             mana_ene: 1.5
         },
         fea: {
-            life: 50,
-            mana: 15,
+            life: -10, // 50
+            mana: -7, // 15
             life_lvl: 2,
             mana_lvl: 1.5
         }
@@ -33,8 +33,8 @@ export const CLASSES = [
             mana_ene: 2
         },
         fea: {
-            life: 40,
-            mana: 35,
+            life: 20, // 40
+            mana: -35, // 35
             life_lvl: 1,
             mana_lvl: 2
         }
@@ -53,8 +53,8 @@ export const CLASSES = [
             mana_ene: 1.5
         },
         fea: {
-            life: 55,
-            mana: 15,
+            life: -20, // 55
+            mana: -7, // 15
             life_lvl: 2,
             mana_lvl: 1.5
         }
@@ -73,8 +73,8 @@ export const CLASSES = [
             mana_ene: 2
         },
         fea: {
-            life: 45,
-            mana: 25,
+            life: 15, // 45
+            mana: -25, // 25
             life_lvl: 1.5,
             mana_lvl: 2
         }
@@ -93,8 +93,8 @@ export const CLASSES = [
             mana_ene: 1
         },
         fea: {
-            life: 55,
-            mana: 10,
+            life: -45, // 55
+            mana: 0, // 10
             life_lvl: 2,
             mana_lvl: 1
         }
