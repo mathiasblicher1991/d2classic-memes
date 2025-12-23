@@ -13,25 +13,43 @@
     border-radius: 8px;}
     label{display:block; margin-bottom: 8px; font-weight: 600;}
     select{display:block; padding: 6px 8px; font-size:1rem;}
+	table{width: 100%; border-collapse: collapse;}
+	th, td{ border: 1px solid #eee; padding: 6px;}
+	th{background: #f7f7f7;}
     .small { font-size:0.9rem; color:#555; }
 </style>
 
 <body>
 
 <div class="card">
-    <label for="enemy">Choose</label>
+    <label for="enemy">Choose monster</label>
     <select id="enemy"></select>
 
     <div id="info" class="small"></div>
+	
+	<input type="checkbox" id="showdetails">
+	<label for="showdetails">Show all numbers</label>
+	
+	<table id="xptab">
+		<thead>
+			<tr><th>Char Lvl</th>
+				<th>XP</th>
+				<th>Lvl diff</th>
+				<th>Raw percentage</th>
+				<th>Penalty bits</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody></tbody>
+	</table>
 </div>
-Okay.
 
 <script>
 
     const ENEMIES = [
-        {id: 'andariel_normal', name: 'Andariel (N)', XP: 1200},
-        {id: 'andariel_nightmare', name: 'Andariel (NM)', XP: 30000},
-        {id: 'andariel_hell', name: 'Andariel (H)', XP: 230000}
+        {id: 'andariel_normal', name: 'Andariel (N)', XP: 1282, lvl: 12},
+        {id: 'andariel_nightmare', name: 'Andariel (NM)', XP: 54291, lvl: 37},
+        {id: 'andariel_hell', name: 'Andariel (H)', XP: 215794, lvl: 62}
     ];
 
     const sel = document.getElementById('enemy');
@@ -49,9 +67,81 @@ Okay.
         info.textContent = `XP: ${enemy.XP}`;
     }
 
-    writeText('andariel_nightmare');
-
     sel.addEventListener('change', (e) => writeText(e.target.value));
+	
+	//XP data
+	const levels = Array.from({ length: 98}, (_, i) => i + 1);
+	const penalty = [
+		...Array(69).fill(1024),
+		976, 928, 880, 832, 784, 736, 688, 640,
+		592, 544, 496, 448, 400, 352, 304, 256,
+		192, 144, 108, 81, 61, 46, 35, 26, 20,
+		15, 11, 8, 6
+	];
+	const low_penalty = [5/256*100, 38/256*100, 92/256*100, 174/256*100, 225/256*100, 
+		100, 100, 100, 100, 100, 
+		100,
+		100, 100, 100, 100, 100,
+		207/256*100, 159/256*100, 110/256*100, 61/256*100, 13/256*100
+	];
+	const high_penalty = [100, 100, 100, 100, 100, 100,
+		207/256*100, 159/256*100, 110/256*100, 61/256*100, 13/256*100
+	];
+	
+	const xt = document.getElementById('xptab');
+	
+	function lvldifpen(clvl, mlvl){
+		
+		const diff = mlvl - clvl;
+		
+		if(clvl < 25){
+			
+			if(diff > 10){
+				return 5/256*100;
+			}else if(diff < -10){
+				return 13/256 * 100;
+			}else{
+				const scuffed_index = -diff + 10;
+				return low_penalty[scuffed_index];
+			}
+			
+		} else {
+			
+			if(diff > 0){
+				return clvl/mlvl * 100;
+			}else if(diff < -10){
+				return 13/256 * 100;
+			}else{
+				return high_penalty[-diff];
+			}
+			
+		}
+	
+		
+	}
+	
+	let mlvl = 37;
+	let XP = 54291;
+	
+	levels.forEach(x => {
+		const row = xt.insertRow();
+		[c1, c2, c3, c4, c5, c6, c7] = Array.from({ length: 7 }, () => row.insertCell());
+		
+		//let c1 = row.insertCell();
+		//let c2 = row.insertCell();
+		//let c3 = row.insertCell();
+		const raw_perc = lvldifpen(x, mlvl);
+		const penal = penalty[x - 1];
+		const adj_XP = Math.floor(Math.floor(raw_perc/100 * XP) * penal/1024);
+		
+		c1.innerHTML = x;
+		c2.innerHTML = adj_XP;
+		c3.innerHTML = mlvl - x;
+		c4.innerHTML = raw_perc;
+		c5.innerHTML = penal
+		c6.innerHTML = penal/1024 * 100;
+		c7.innerHTML = raw_perc * penal/1024;
+	});
 
 
 </script>
